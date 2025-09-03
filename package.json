@@ -1,0 +1,19 @@
+{
+  "name": "entrega-1---backend-zarandon",
+  "version": "1.0.0",
+  "description": "Un servidor para primer entrega del curso de Backend de Coderhouse",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/app.js"
+  },
+  "keywords": [],
+  "author": "Juan Zarandon",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-handlebars": "^8.0.3",
+    "nodemon": "^3.1.10",
+    "socket.io": "^4.8.1"
+  }
+}

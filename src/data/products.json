@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "title": "pepe",
+    "description": "Sin descripción",
+    "code": "CODE_1756863886362",
+    "price": 50,
+    "status": true,
+    "stock": 10,
+    "category": "General",
+    "thumbnails": []
+  },
+  {
+    "id": 2,
+    "title": "asdasdsd",
+    "description": "Sin descripción",
+    "code": "CODE_1756863965553",
+    "price": 58,
+    "status": true,
+    "stock": 10,
+    "category": "General",
+    "thumbnails": []
+  },
+  {
+    "id": 3,
+    "title": "asdasdasdasd",
+    "description": "Sin descripción",
+    "code": "CODE_1756863969593",
+    "price": 22,
+    "status": true,
+    "stock": 10,
+    "category": "General",
+    "thumbnails": []
+  }
+]
