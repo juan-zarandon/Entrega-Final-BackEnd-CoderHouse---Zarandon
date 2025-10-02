@@ -3,7 +3,7 @@ import ProductManager from "../managers/ProductManager.js";
 
 export default (io) => {
   const router = Router();
-  const productManager = new ProductManager("./src/data/products.json");
+  const productManager = new ProductManager();
 
   router.post("/", async (req, res) => {
     try {
@@ -29,5 +29,6 @@ export default (io) => {
       res.status(500).json({ error: error.message });
     }
   });
+
   return router;
 };

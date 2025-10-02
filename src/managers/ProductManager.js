@@ -1,66 +1,69 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-
-const __dirname = path.dirname(__filename);
+import Product from "../models/Product.js";
 
 class ProductManager {
-  constructor(filePath) {
-    this.path = path.resolve(__dirname, "..", filePath);
-  }
-
   async getProducts() {
     try {
-      const data = await fs.readFile(this.path, "utf-8");
-      return JSON.parse(data);
-    } catch {
+      return await Product.find();
+    } catch (error) {
+      console.error("Error getting products:", error);
       return [];
     }
   }
+
   async getProductById(id) {
-    const products = await this.getProducts();
-    return products.find((p) => p.id == id);
+    try {
+      return await Product.findById(id);
+    } catch (error) {
+      console.error("Error getting product by id:", error);
+      return null;
+    }
   }
 
   async addProduct(productData) {
-    const products = await this.getProducts();
+    try {
+      const newProduct = new Product({
+        title: productData.title || productData.nombre,
+        description: productData.description,
+        code: productData.code,
+        price: productData.price || productData.precio,
+        status: productData.status ?? true,
+        stock: productData.stock,
+        category: productData.category,
+        thumbnails: productData.thumbnails || [],
+      });
 
-    const newId = products.length > 0 ? products.at(-1).id + 1 : 1;
-
-    const newProduct = {
-      id: newId,
-      title: productData.title || productData.nombre,
-      description: productData.description,
-      code: productData.code,
-      price: productData.price || productData.precio,
-      status: productData.status ?? true,
-      stock: productData.stock,
-      category: productData.category,
-      thumbnails: productData.thumbnails || [],
-    };
-    products.push(newProduct);
-    await fs.writeFile(this.path, JSON.stringify(products, null, 2));
-    return newProduct;
+      await newProduct.save();
+      return newProduct;
+    } catch (error) {
+      console.error("Error adding product:", error);
+      throw error;
+    }
   }
 
   async updateProduct(id, updates) {
-    const products = await this.getProducts();
-    const index = products.findIndex((p) => p.id == id);
-    if (index === -1) return { error: "No encontrado" };
+    try {
+      delete updates.id;
+      const updated = await Product.findByIdAndUpdate(id, updates, {
+        new: true,
+        runValidators: true,
+      });
 
-    delete updates.id;
-    products[index] = { ...products[index], ...updates };
-    await fs.writeFile(this.path, JSON.stringify(products, null, 2));
-    return products[index];
+      if (!updated) return { error: "No encontrado" };
+      return updated;
+    } catch (error) {
+      console.error("Error updating product:", error);
+      return { error: "Error al actualizar" };
+    }
   }
 
   async deleteProduct(id) {
-    const products = await this.getProducts();
-    const updated = products.filter((p) => p.id != id);
-    await fs.writeFile(this.path, JSON.stringify(updated, null, 2));
-    return { message: `Producto ${id} eliminado` };
+    try {
+      await Product.findByIdAndDelete(id);
+      return { message: `Producto ${id} eliminado` };
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      throw error;
+    }
   }
 }
 

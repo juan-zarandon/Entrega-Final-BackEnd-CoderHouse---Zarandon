@@ -31,5 +31,27 @@
     "stock": 10,
     "category": "General",
     "thumbnails": []
+  },
+  {
+    "id": 4,
+    "title": "asd",
+    "description": "Sin descripción",
+    "code": "CODE_1759283328000",
+    "price": 1233,
+    "status": true,
+    "stock": 10,
+    "category": "General",
+    "thumbnails": []
+  },
+  {
+    "id": 5,
+    "title": "asdsad",
+    "description": "Sin descripción",
+    "code": "CODE_1759412752829",
+    "price": 432453,
+    "status": true,
+    "stock": 10,
+    "category": "General",
+    "thumbnails": []
   }
 ]

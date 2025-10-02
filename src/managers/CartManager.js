@@ -1,59 +1,57 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import Cart from "../models/Cart.js";
 
 class CartManager {
-  constructor(filePath) {
-    this.path = path.resolve(__dirname, "..", filePath);
-  }
-
   async getCarts() {
     try {
-      const data = await fs.readFile(this.path, "utf-8");
-      return JSON.parse(data);
-    } catch {
+      return await Cart.find().populate("products.product");
+    } catch (error) {
+      console.error("Error getting carts:", error);
       return [];
     }
   }
 
   async createCart() {
-    const carts = await this.getCarts();
-    const newId = carts.length > 0 ? carts.at(-1).id + 1 : 1;
-
-    const newCart = {
-      id: newId,
-      products: [],
-    };
-
-    carts.push(newCart);
-    await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
-    return newCart;
+    try {
+      const newCart = new Cart({ products: [] });
+      await newCart.save();
+      return newCart;
+    } catch (error) {
+      console.error("Error creating cart:", error);
+      throw error;
+    }
   }
 
   async getCartById(id) {
-    const carts = await this.getCarts();
-    return carts.find((c) => c.id === id);
+    try {
+      return await Cart.findById(id).populate("products.product");
+    } catch (error) {
+      console.error("Error getting cart by id:", error);
+      return null;
+    }
   }
 
   async addProductToCart(cartId, productId) {
-    const carts = await this.getCarts();
-    const cart = carts.find((c) => c.id === cartId);
+    try {
+      const cart = await Cart.findById(cartId);
 
-    if (!cart) return { error: "carrito no encontrado" };
+      if (!cart) return { error: "carrito no encontrado" };
 
-    const existingProduct = cart.products.find((p) => p.product === productId);
+      const existingProduct = cart.products.find(
+        (p) => p.product.toString() === productId
+      );
 
-    if (existingProduct) {
-      existingProduct.quantity += 1;
-    } else {
-      cart.products.push({ product: productId, quantity: 1 });
+      if (existingProduct) {
+        existingProduct.quantity += 1;
+      } else {
+        cart.products.push({ product: productId, quantity: 1 });
+      }
+
+      await cart.save();
+      return await Cart.findById(cartId).populate("products.product");
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      throw error;
     }
-
-    await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
-    return cart;
   }
 }
 
