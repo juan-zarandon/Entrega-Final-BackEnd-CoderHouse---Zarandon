@@ -33,11 +33,8 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/products", productsRouter(io));
 
-// --- RUTA PRINCIPAL (RAÍZ) ---
 app.get("/", (req, res) => {
-  // ⚠️ IMPORTANTE: Asegúrate de que 'home' coincida con el nombre de tu archivo Handlebars (ej: 'home.handlebars')
   res.render("home", {
-    // Los datos que pases aquí (como 'titulo') estarán disponibles en tu plantilla Handlebars
     titulo: "Mi Tienda",
     mensaje: "Bienvenido a mi aplicación web con Handlebars",
   });
