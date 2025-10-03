@@ -103,16 +103,11 @@ router.delete("/:cid", async (req, res) => {
   }
 });
 
-// ===============================================
-// 6. PUT api/carts/:cid - ACTUALIZAR TODOS LOS PRODUCTOS
-// Recibe un array de objetos { product: id, quantity: number }
-// ===============================================
 router.put("/:cid", async (req, res) => {
   try {
     const cartId = req.params.cid;
-    const productsArray = req.body; // Array de productos del body
+    const productsArray = req.body;
 
-    // Usamos $set para reemplazar completamente el array 'products'
     const result = await Cart.findByIdAndUpdate(
       cartId,
       { $set: { products: productsArray } },
@@ -129,14 +124,10 @@ router.put("/:cid", async (req, res) => {
   }
 });
 
-// ===============================================
-// 7. PUT api/carts/:cid/products/:pid - ACTUALIZAR CANTIDAD
-// Recibe un { quantity: number } en req.body
-// ===============================================
 router.put("/:cid/products/:pid", async (req, res) => {
   try {
     const { cid, pid } = req.params;
-    const { quantity } = req.body; // Cantidad nueva del body
+    const { quantity } = req.body;
 
     if (typeof quantity !== "number" || quantity <= 0) {
       return res
@@ -144,7 +135,6 @@ router.put("/:cid/products/:pid", async (req, res) => {
         .json({ error: "La cantidad debe ser un número positivo." });
     }
 
-    // Usamos $set para actualizar un subdocumento específico
     const result = await Cart.findOneAndUpdate(
       { _id: cid, "products.product": pid },
       { $set: { "products.$.quantity": quantity } },
