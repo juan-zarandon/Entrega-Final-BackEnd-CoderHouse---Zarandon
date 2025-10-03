@@ -1,22 +1,29 @@
-import ProductManager from "../managers/ProductManager.js";
-import path from "path";
-import { fileURLToPath } from "url";
+import ProductModel from "../models/Product.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+export async function obtenerProductos() {
+  return await ProductModel.find().lean();
+}
 
-const productManager = new ProductManager(
-  path.join(__dirname, "..", "data", "products.json")
-);
+export async function crearProducto(productData) {
+  const newProduct = await ProductModel.create(productData);
+  return newProduct;
+}
 
-export const obtenerProductos = async () => {
-  return await productManager.getProducts();
-};
+export async function eliminarProducto(productId) {
+  const result = await ProductModel.findByIdAndDelete(productId);
+  return result;
+}
 
-export const crearProducto = async (productData) => {
-  return await productManager.addProduct(productData);
-};
+export async function obtenerProductoPorId(productId) {
+  const product = await ProductModel.findById(productId).lean();
+  return product;
+}
 
-export const eliminarProducto = async (productId) => {
-  return await productManager.deleteProduct(productId);
-};
+export async function actualizarProducto(productId, updates) {
+  const updatedProduct = await ProductModel.findByIdAndUpdate(
+    productId,
+    updates,
+    { new: true, runValidators: true }
+  ).lean();
+  return updatedProduct;
+}

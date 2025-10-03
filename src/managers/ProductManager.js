@@ -3,66 +3,149 @@ import Product from "../models/Product.js";
 class ProductManager {
   async getProducts() {
     try {
-      return await Product.find();
+      const products = await Product.find();
+      return products;
     } catch (error) {
-      console.error("Error getting products:", error);
-      return [];
+      throw new Error(`Error al obtener productos: ${error.message}`);
     }
   }
 
   async getProductById(id) {
     try {
-      return await Product.findById(id);
+      const product = await Product.findById(id);
+      if (!product) {
+        throw new Error("Producto no encontrado");
+      }
+      return product;
     } catch (error) {
-      console.error("Error getting product by id:", error);
-      return null;
+      throw new Error(`Error al obtener producto: ${error.message}`);
     }
   }
 
   async addProduct(productData) {
     try {
+      const { title, description, code, price, stock, category } = productData;
+
+      if (
+        !title ||
+        !description ||
+        !code ||
+        !price ||
+        stock === undefined ||
+        !category
+      ) {
+        throw new Error("Faltan campos obligatorios");
+      }
+
+      const existingProduct = await Product.findOne({ code });
+      if (existingProduct) {
+        throw new Error(`El producto con código "${code}" ya existe`);
+      }
+
       const newProduct = new Product({
-        title: productData.title || productData.nombre,
-        description: productData.description,
-        code: productData.code,
-        price: productData.price || productData.precio,
-        status: productData.status ?? true,
-        stock: productData.stock,
-        category: productData.category,
+        title,
+        description,
+        code,
+        price: Number(price),
+        stock: Number(stock),
+        category,
         thumbnails: productData.thumbnails || [],
+        status: productData.status !== undefined ? productData.status : true,
       });
 
       await newProduct.save();
+      console.log("✅ Producto guardado en MongoDB:", newProduct._id);
+
       return newProduct;
     } catch (error) {
-      console.error("Error adding product:", error);
-      throw error;
+      if (error.code === 11000) {
+        throw new Error("El código del producto ya existe");
+      }
+      throw new Error(`Error al agregar producto: ${error.message}`);
     }
   }
 
-  async updateProduct(id, updates) {
+  async updateProduct(id, updateData) {
     try {
-      delete updates.id;
-      const updated = await Product.findByIdAndUpdate(id, updates, {
+      const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
         new: true,
         runValidators: true,
       });
 
-      if (!updated) return { error: "No encontrado" };
-      return updated;
+      if (!updatedProduct) {
+        throw new Error("Producto no encontrado");
+      }
+
+      return updatedProduct;
     } catch (error) {
-      console.error("Error updating product:", error);
-      return { error: "Error al actualizar" };
+      throw new Error(`Error al actualizar producto: ${error.message}`);
     }
   }
 
   async deleteProduct(id) {
     try {
-      await Product.findByIdAndDelete(id);
-      return { message: `Producto ${id} eliminado` };
+      const deletedProduct = await Product.findByIdAndDelete(id);
+
+      if (!deletedProduct) {
+        throw new Error("Producto no encontrado");
+      }
+
+      return {
+        message: "Producto eliminado correctamente",
+        product: deletedProduct,
+      };
     } catch (error) {
-      console.error("Error deleting product:", error);
-      throw error;
+      throw new Error(`Error al eliminar producto: ${error.message}`);
+    }
+  }
+
+  async getProductsPaginated(options = {}) {
+    try {
+      const { limit = 10, page = 1, sort, query } = options;
+
+      const filter = {};
+      if (query) {
+        if (query.includes("category:")) {
+          filter.category = query.split(":")[1];
+        } else {
+          filter.title = { $regex: query, $options: "i" };
+        }
+      }
+
+      const sortOptions = {};
+      if (sort === "asc") {
+        sortOptions.price = 1;
+      } else if (sort === "desc") {
+        sortOptions.price = -1;
+      }
+
+      const products = await Product.find(filter)
+        .sort(sortOptions)
+        .limit(limit)
+        .skip((page - 1) * limit)
+        .lean();
+
+      const totalProducts = await Product.countDocuments(filter);
+      const totalPages = Math.ceil(totalProducts / limit);
+
+      return {
+        status: "success",
+        payload: products,
+        totalPages,
+        prevPage: page > 1 ? page - 1 : null,
+        nextPage: page < totalPages ? page + 1 : null,
+        page,
+        hasPrevPage: page > 1,
+        hasNextPage: page < totalPages,
+        prevLink:
+          page > 1 ? `/api/products?page=${page - 1}&limit=${limit}` : null,
+        nextLink:
+          page < totalPages
+            ? `/api/products?page=${page + 1}&limit=${limit}`
+            : null,
+      };
+    } catch (error) {
+      throw new Error(`Error en consulta paginada: ${error.message}`);
     }
   }
 }

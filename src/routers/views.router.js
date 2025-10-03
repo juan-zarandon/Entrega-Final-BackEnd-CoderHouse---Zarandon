@@ -1,24 +1,31 @@
 import { Router } from "express";
-import ProductManager from "../managers/ProductManager.js";
-import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const productManager = new ProductManager(
-  path.join(__dirname, "../data/products.json")
-);
+import { obtenerProductos } from "../services/servicioProductos.js";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
-  const products = await productManager.getProducts();
-  res.render("home", { products: products });
+  try {
+    const products = await obtenerProductos();
+
+    res.render("home", { products: products });
+  } catch (error) {
+    console.error("❌ Error en GET / (Vistas):", error);
+    res.status(500).render("error", { message: "Error al cargar productos." });
+  }
 });
 
 router.get("/realtimeproducts", async (req, res) => {
-  const products = await productManager.getProducts();
-  res.render("realTimeProducts", { products: products });
+  try {
+    const products = await obtenerProductos();
+
+    res.render("realTimeProducts", { products: products });
+  } catch (error) {
+    console.error("❌ Error en GET /realtimeproducts:", error);
+    res
+      .status(500)
+      .render("error", { message: "Error al cargar la vista en tiempo real." });
+  }
 });
 
 export default router;

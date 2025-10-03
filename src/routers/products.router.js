@@ -1,31 +1,28 @@
 import { Router } from "express";
-import ProductManager from "../managers/ProductManager.js";
+import {
+  crearProducto,
+  obtenerProductos,
+  obtenerProductoPorId,
+  actualizarProducto,
+  eliminarProducto,
+} from "../services/servicioProductos.js";
 
 export default (io) => {
   const router = Router();
-  const productManager = new ProductManager();
 
   router.post("/", async (req, res) => {
     try {
-      const product = req.body;
-      const newProduct = await productManager.addProduct(product);
+      console.log("📦 POST /api/products - Body:", req.body);
 
-      io.emit("productos:lista", await productManager.getProducts());
+      const newProduct = await crearProducto(req.body);
 
+      const allProducts = await obtenerProductos();
+      io.emit("productos:lista", allProducts);
+
+      console.log("✅ Producto creado:", newProduct._id);
       res.status(201).json(newProduct);
     } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  router.delete("/:pid", async (req, res) => {
-    try {
-      const result = await productManager.deleteProduct(req.params.pid);
-
-      io.emit("productos:lista", await productManager.getProducts());
-
-      res.json(result);
-    } catch (error) {
+      console.error("❌ Error en POST /api/products:", error);
       res.status(500).json({ error: error.message });
     }
   });
